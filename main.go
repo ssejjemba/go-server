@@ -1,7 +1,11 @@
-package main
+package rest_server
 
-import "fmt"
+import (
+	"log"
+	"net/http"
+)
 
-func main(){
-	fmt.Println("This is your first REST api in GO")
+func main() {
+	handler := http.HandlerFunc(UserServer)
+	log.Fatal(http.ListenAndServe(":5000", handler))
 }
