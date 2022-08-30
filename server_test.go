@@ -10,8 +10,8 @@ import (
 
 
 func TestServer(t *testing.T) {
-	t.Run("Returns the user that is being requested", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodGet, "users/1", nil)
+	t.Run("Returns the user with id 1", func(t *testing.T) {
+		request := newGetUserRequest("1")
 
 		response := httptest.NewRecorder()
 
@@ -19,21 +19,31 @@ func TestServer(t *testing.T) {
 
 		got := response.Body.String()
 
-		want := User {
-			id: "01",
-			firstName: "Daniel",
-			lastName: "Ssejjemba",
-			age: 26,
-			address: "Mego Bilania Apartments, Kyebando",
-			gender: "Male",
-			phone: "+256706650884",
-		}
-
-		str := fmt.Sprintf("%#v", want)
-
-		if got != str {
-			t.Errorf("got %s wanted %s", got, str)
-		}
+		assertResponseBody(t, got, "Daniel")
 	})
+
+	t.Run("Returns the user with id 2", func(t *testing.T) {
+		request := newGetUserRequest("2")
+
+		response := httptest.NewRecorder()
+
+		UserServer(response, request)
+
+		got := response.Body.String()
+
+		assertResponseBody(t, got, "Jordan")
+	})
+}
+
+func newGetUserRequest(name string) *http.Request {
+	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/users/%s", name), nil)
+	return req
+}
+
+func assertResponseBody(t testing.TB, got, want string) {
+	t.Helper()
+	if got != want {
+		t.Errorf("response body is wrong, got %q want %q", got, want)
+	}
 }
 
