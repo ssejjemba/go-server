@@ -5,10 +5,16 @@ import (
 	"net/http"
 )
 
-type InMemoryUserStore struct{}
+type InMemoryUserStore struct{
+	names map[string] string
+}
 
-func (i *InMemoryUserStore) GetUserName(name string) string {
-	return "Live"
+func (i *InMemoryUserStore) GetUserName(id string) string {
+	return i.names[id]
+}
+
+func (i *InMemoryUserStore) AddUser(user UserRequest) {
+	i.names[user.id] = user.name
 }
 
 func main() {

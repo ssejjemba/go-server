@@ -1,6 +1,8 @@
 package rest_server
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -13,6 +15,10 @@ type StubUserStore struct {
 
 func (s *StubUserStore) GetUserName(id string) string {
 	return s.names[id]
+}
+
+func (s *StubUserStore) AddUser(user UserRequest) {
+	s.names[user.id] = user.name
 }
 
 func TestServer(t *testing.T) {
@@ -62,12 +68,20 @@ func TestServer(t *testing.T) {
 
 func TestStoreUsers(t *testing.T) {
 	store := StubUserStore{
-		map[string]string{},
+		make(map[string]string),
 	}
+
 	server := &UserServer{&store}
 
 	t.Run("it returns accepted on POST", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodPost, "/users/1", nil)
+		newUser := UserRequest {
+			"1",
+			"Jimmy",
+		}
+
+		request := newPostUserRequest(newUser)
+
+		
 		response := httptest.NewRecorder()
 
 		server.ServeHTTP(response, request)
@@ -79,6 +93,12 @@ func TestStoreUsers(t *testing.T) {
 func newGetUserRequest(name string) *http.Request {
 	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/users/%s", name), nil)
 	return req
+}
+
+func newPostUserRequest(user UserRequest) *http.Request {
+		body, _ := json.Marshal(user)
+		request, _ := http.NewRequest(http.MethodPost, "/users/", bytes.NewBuffer(body))
+		return request
 }
 
 func assertResponseBody(t testing.TB, got, want string) {
@@ -94,4 +114,3 @@ func assertStatus(t testing.TB, got, want int) {
 		t.Errorf("did not get correct status, got %d, want %d", got, want)
 	}
 }
-
