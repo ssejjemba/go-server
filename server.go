@@ -6,23 +6,38 @@ import (
 	"strings"
 )
 
+type UserStore interface {
+	GetUserName(id string) string
+}
 
-func UserServer(w http.ResponseWriter, r *http.Request){
+type UserServer struct {
+	store UserStore
+}
+
+func (u *UserServer) ServeHTTP (w http.ResponseWriter, r *http.Request){
+	switch r.Method{
+		case http.MethodPost:
+			u.processUser(w)
+		case http.MethodGet:
+			u.showUser(w, r)
+	}
+}
+
+func (u *UserServer) processUser(w http.ResponseWriter){
+	w.WriteHeader(http.StatusAccepted)
+}
+
+func (u *UserServer) showUser(w http.ResponseWriter, r *http.Request){
 	user := strings.TrimPrefix(r.URL.Path, "/users/")
 
-	fmt.Fprint(w, GetUserName(user))
-	
-}
 
-func GetUserName(id string) string {
-	if(id == "1"){
-		return "Daniel"
+	name := u.store.GetUserName(user)
+
+	if name == "" {
+		w.WriteHeader(http.StatusNotFound)
 	}
 
-	if(id == "2"){
-		return "Jordan"
-	}
-
-	return ""
-
+	fmt.Fprint(w, name)
 }
+
+
